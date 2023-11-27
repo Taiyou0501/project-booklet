@@ -8,9 +8,7 @@ import {
 	useRef,
 } from "react"
 
-import { Form, FormItem, FormMessage } from "@/Components/form-inertia"
-import { PasswordInput } from "@/Components/password-input"
-import { Label } from "@/Components/ui/label"
+import { Form } from "@/Components/form-inertia"
 
 interface Props {
 	setOpen: Dispatch<SetStateAction<boolean>>
@@ -52,27 +50,12 @@ const DeleteAccountForm: FC<Props> = ({ setOpen, setLoading }) => {
 			onSubmit={onSubmit}
 			className="space-y-4"
 		>
-			<FormItem>
-				<Label htmlFor="password">Password</Label>
-				<PasswordInput
-					id="password"
-					value={data.password}
-					onChange={(e) => setData("password", e.target.value)}
-					ref={passwordInput}
-					autoComplete="password"
-				/>
-				<FormMessage
-					message={errors.password}
-					className="mt-2 text-sm font-medium text-destructive"
-				/>
-			</FormItem>
-
 			<Form.Input
 				label="Password"
 				password
 				value={data.password}
 				onChange={(e) => setData("password", e.target.value)}
-				autoComplete="password"
+				placeholder="**********"
 				message={errors.password}
 			/>
 		</Form>

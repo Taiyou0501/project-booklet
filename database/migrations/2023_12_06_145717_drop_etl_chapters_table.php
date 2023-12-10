@@ -11,13 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('chapters', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->string('content');
-            $table->timestamps();
-            $table->bigInteger('book_id');
-        });
+        //
+        Schema::dropIfExists('etl_chapters');
     }
 
     /**
@@ -25,6 +20,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('chapters');
+        //
     }
 };

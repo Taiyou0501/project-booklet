@@ -5,7 +5,7 @@ import { Form } from "@/Components/form-inertia"
 import { Button } from "@/Components/ui/button"
 import { Label } from "@/Components/ui/label"
 import { useToast } from "@/Components/ui/use-toast"
-import { ListChapters } from "@/Components/uploads/list-chapters"
+import { ListChapters } from "@/Components/upload/list-chapters"
 
 export type Chapters = {
 	id: number
@@ -16,9 +16,9 @@ export type Chapters = {
 const AddBookForm = () => {
 	const { toast } = useToast()
 	const { data, setData, post, processing, errors, reset } = useForm({
-		cover: "",
 		title: "",
 		author: "",
+		cover: "",
 		description: "",
 		genres: "",
 		chapters: [] as Chapters,
@@ -37,7 +37,7 @@ const AddBookForm = () => {
 				</pre>
 			),
 		})
-		// post(route("uploads.add"))
+		post(route("uploads.create"))
 	}
 
 	return (
@@ -65,7 +65,7 @@ const AddBookForm = () => {
 						className="sm:w-72"
 					/>
 
-					<Form.Image
+					<Form.File
 						label="Book Cover"
 						value={data.cover}
 						onChange={(e) => setData("cover", e.target.value)}

@@ -1,4 +1,4 @@
-import { Link } from "@inertiajs/react"
+import { Link, usePage } from "@inertiajs/react"
 import { FC, ReactNode, cloneElement, useEffect, useState } from "react"
 
 import { BookIcon, SearchIcon } from "lucide-react"
@@ -11,6 +11,7 @@ import {
 	CommandItem,
 	CommandList,
 } from "@/Components/ui/command"
+import { Book, PageProps } from "@/types"
 
 interface Props {
 	navLinks: {
@@ -21,13 +22,46 @@ interface Props {
 }
 
 const SearchInput: FC<Props> = ({ navLinks }) => {
+	const user = usePage<PageProps>().props.auth?.user
+	const [userBooks, setUserBooks] = useState<Book[]>([])
+	const [otherBooks, setOtherBooks] = useState<Book[]>([])
 	const [open, setOpen] = useState(false)
+	const [loading, setLoading] = useState(false)
+
+	const fetchBooks = () => {
+		setOpen(true)
+		setLoading(true)
+		fetch("/api/get-books")
+			.then((response) => response.json())
+			.then((data: { books: Book[] }) => {
+				setUserBooks(
+					data.books.filter(
+						(book) => String(book.user_id) === String(user?.id),
+					),
+				)
+				setOtherBooks(
+					data.books.filter(
+						(book) => String(book.user_id) !== String(user?.id),
+					),
+				)
+				setLoading(false)
+			})
+			.catch((error) => {
+				console.error("Error fetching books:", error)
+				setLoading(false)
+			})
+	}
 
 	useEffect(() => {
 		const down = (e: KeyboardEvent) => {
 			if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
 				e.preventDefault()
-				setOpen((open) => !open)
+				setOpen((open) => {
+					if (!open) {
+						fetchBooks()
+					}
+					return !open
+				})
 			}
 		}
 		document.addEventListener("keydown", down)
@@ -37,7 +71,7 @@ const SearchInput: FC<Props> = ({ navLinks }) => {
 	return (
 		<>
 			<button
-				onClick={() => setOpen(true)}
+				onClick={fetchBooks}
 				className="flex h-8 items-center gap-x-2 rounded-full border px-2 text-muted-foreground transition hover:bg-accent dark:hover:bg-accent/60"
 			>
 				<SearchIcon className="h-4 w-4" />
@@ -51,24 +85,56 @@ const SearchInput: FC<Props> = ({ navLinks }) => {
 				open={open}
 				onOpenChange={setOpen}
 			>
-				<CommandInput placeholder="Search all channels and members" />
+				<CommandInput placeholder="Looking for a book?" />
 				<CommandList>
 					<CommandEmpty>No Results found</CommandEmpty>
 
-					<CommandGroup heading="Books">
-						<CommandItem>
-							<BookIcon className="mr-2 h-4 w-4" />
-							Book 1
-						</CommandItem>
-						<CommandItem>
-							<BookIcon className="mr-2 h-4 w-4" />
-							Book 2
-						</CommandItem>
-						<CommandItem>
-							<BookIcon className="mr-2 h-4 w-4" />
-							Book 3
-						</CommandItem>
-					</CommandGroup>
+					{loading ? (
+						<CommandGroup heading="Loading...">
+							<CommandItem>
+								<CustomCommandItem
+									icon={<BookIcon className="mr-2 h-4 w-4" />}
+									title="Loading..."
+								/>
+							</CommandItem>
+						</CommandGroup>
+					) : (
+						<>
+							<CommandGroup heading="Your Books">
+								{userBooks?.map((book) => (
+									<Link
+										href={`/browse/${book.id}`}
+										key={book.id}
+										onClick={() => setOpen(false)}
+									>
+										<CommandItem>
+											<CustomCommandItem
+												icon={<BookIcon className="mr-2 h-4 w-4" />}
+												title={book.title}
+											/>
+										</CommandItem>
+									</Link>
+								))}
+							</CommandGroup>
+
+							<CommandGroup heading="Other Books">
+								{otherBooks.map((book) => (
+									<Link
+										href={`/browse/${book.id}`}
+										key={book.id}
+										onClick={() => setOpen(false)}
+									>
+										<CommandItem>
+											<CustomCommandItem
+												icon={<BookIcon className="mr-2 h-4 w-4" />}
+												title={book.title}
+											/>
+										</CommandItem>
+									</Link>
+								))}
+							</CommandGroup>
+						</>
+					)}
 
 					<CommandGroup heading="Navigation">
 						{navLinks.map((item) => (
@@ -100,7 +166,7 @@ const CustomCommandItem = ({ icon, title }: { icon: any; title: string }) => {
 	return (
 		<>
 			{CustomIcon}
-			{title}
+			<span className="line-clamp-1">{title}</span>
 		</>
 	)
 }
